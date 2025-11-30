@@ -5,13 +5,13 @@ import { FormField } from "@/components/FormField";
 import { SignatureCanvasComponent } from "@/components/SignatureCanvas";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { CurrencySelector } from "@/components/CurrencySelector";
+import { AmountFieldWithCurrency } from "@/components/AmountFieldWithCurrency";
 import { generatePDF, FormData } from "@/utils/pdfGenerator";
 import { amountToWords } from "@/utils/amountToWords";
 import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
-import { Currency, currencies } from "@/types/currency";
+import { Currency } from "@/types/currency";
 
 type FieldErrors = Record<keyof FormData, boolean>;
 
@@ -201,7 +201,7 @@ const Index = () => {
       
         {/* Main Form Card */}
         <Card className="p-6 space-y-6 shadow-lg">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date*/}
             <FormField
               label={t.date}
@@ -210,28 +210,23 @@ const Index = () => {
               type="date"
               error={fieldErrors.date}
             />
-            {/* Currency */}
-            <CurrencySelector
-              label={t.currency}
-              value={currency}
-              onChange={handleCurrencyChange}
+            {/* Amount with Currency */}
+            <AmountFieldWithCurrency
+              label={t.amount}
+              value={formData.amount}
+              currency={currency}
+              onChange={handleAmountChange}
+              onCurrencyChange={handleCurrencyChange}
+              onBlur={handleAmountBlur}
+              error={fieldErrors.amount}
             />
-            {/* Amount */}
+            {/* Issued To */}
             <FormField
-                label={`${t.amountLabel} (${currencies[currency].code}) *`}
-                value={formData.amount}
-                onChange={handleAmountChange}
-                error={fieldErrors.amount}
-                onBlur={handleAmountBlur}
-                prefix={currencies[currency].symbol}
-              />
-              {/* Issued To */}
-              <FormField
-                label={t.issuedTo}
-                value={formData.issuedTo}
-                onChange={updateField("issuedTo")}
-                error={fieldErrors.issuedTo}
-              />
+              label={t.issuedTo}
+              value={formData.issuedTo}
+              onChange={updateField("issuedTo")}
+              error={fieldErrors.issuedTo}
+            />
           </div>
 
           {/* Account Info */}
