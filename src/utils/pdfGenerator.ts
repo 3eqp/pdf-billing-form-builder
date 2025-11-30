@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { RobotoRegular, RobotoBold } from "../fonts/roboto";
 
 export interface FormData {
   date: string;
@@ -53,6 +54,12 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
     format: "a4",
   });
 
+  // Register Roboto font with Cyrillic support
+  doc.addFileToVFS("Roboto-Regular.ttf", RobotoRegular);
+  doc.addFont("Roboto-Regular.ttf", "Roboto", "normal");
+  doc.addFileToVFS("Roboto-Bold.ttf", RobotoBold);
+  doc.addFont("Roboto-Bold.ttf", "Roboto", "bold");
+
   const pageWidth = 210;
   const pageHeight = 297;
   const margin = 15;
@@ -61,20 +68,20 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
   // Page 1: Form
   // Header
   doc.setFontSize(11);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("Roboto", "normal");
   const headerText = "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE";
   const headerWidth = doc.getTextWidth(headerText);
   doc.text(headerText, (pageWidth - headerWidth) / 2, 20);
 
   // Title
   doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
+  doc.setFont("Roboto", "bold");
   const titleText = "Dowód wypłaty";
   const titleWidth = doc.getTextWidth(titleText);
   doc.text(titleText, (pageWidth - titleWidth) / 2, 32);
 
   doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
+  doc.setFont("Roboto", "normal");
 
   let yPos = 45;
 
