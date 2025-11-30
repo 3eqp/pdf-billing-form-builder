@@ -326,7 +326,13 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
 
   // Save the merged PDF
   const finalPdfBytes = await finalPdf.save();
-  const blob = new Blob([finalPdfBytes], { type: "application/pdf" });
+  // Convert Uint8Array to ArrayBuffer to fix TypeScript type compatibility with BlobPart
+  // pdf-lib always returns a regular ArrayBuffer, so the cast is safe
+  const arrayBuffer = finalPdfBytes.buffer.slice(
+    finalPdfBytes.byteOffset,
+    finalPdfBytes.byteOffset + finalPdfBytes.byteLength
+  ) as ArrayBuffer;
+  const blob = new Blob([arrayBuffer], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
