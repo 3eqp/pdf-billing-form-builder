@@ -9,7 +9,7 @@ const currencyNames: Record<Language, { zloty: [string, string, string]; grosz: 
   },
   en: {
     zloty: ['zloty', 'zloty', 'zloty'],
-    grosz: ['grosz', 'groszy', 'groszy'],
+    grosz: ['grosz', 'grosz', 'grosz'],
   },
   ru: {
     zloty: ['злотый', 'злотых', 'злотых'],
