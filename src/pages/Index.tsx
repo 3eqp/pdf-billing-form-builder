@@ -33,13 +33,60 @@ const Index = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Format amount to always have 2 decimal places
+  const formatAmount = (value: string): string => {
+    // Remove all non-numeric characters except decimal point and comma
+    let cleaned = value.replace(/[^\d.,]/g, '');
+    // Replace comma with dot for consistency
+    cleaned = cleaned.replace(',', '.');
+    // Remove multiple decimal points, keep only the first
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    if (!cleaned || cleaned === '.') {
+      return '';
+    }
+
+    const parsed = parseFloat(cleaned);
+    if (isNaN(parsed)) {
+      return '';
+    }
+
+    return parsed.toFixed(2);
+  };
+
   const handleAmountChange = (value: string) => {
-    const words = amountToWords(value, language);
+    // Allow typing with partial input (don't format while typing)
+    // Only allow digits, decimal point and comma
+    const sanitized = value.replace(/[^\d.,]/g, '').replace(',', '.');
+    
+    // Prevent more than 2 decimal places while typing
+    const parts = sanitized.split('.');
+    let processedValue = sanitized;
+    if (parts.length > 1 && parts[1].length > 2) {
+      processedValue = parts[0] + '.' + parts[1].slice(0, 2);
+    }
+    
+    const words = amountToWords(processedValue, language);
     setFormData((prev) => ({
       ...prev,
-      amount: value,
+      amount: processedValue,
       amountInWords: words,
     }));
+  };
+
+  const handleAmountBlur = () => {
+    if (formData.amount) {
+      const formatted = formatAmount(formData.amount);
+      const words = amountToWords(formatted, language);
+      setFormData((prev) => ({
+        ...prev,
+        amount: formatted,
+        amountInWords: words,
+      }));
+    }
   };
 
   const handleLanguageChange = (newLanguage: Language) => {
@@ -109,6 +156,7 @@ const Index = () => {
               label={t.amount}
               value={formData.amount}
               onChange={handleAmountChange}
+              onBlur={handleAmountBlur}
             />
           </div>
 

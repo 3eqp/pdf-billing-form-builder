@@ -3,7 +3,7 @@ export type Language = 'ru' | 'en' | 'uk' | 'pl';
 export const translations = {
   ru: {
     accountInfo: "Счет для перевода (номер телефона или банковский счет)",
-    amount: "Сумма *",
+    amount: "Сумма (zł) *",
     amountInWords: "Сумма прописью",
     basedOn: "На основании",
     church: "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE",
@@ -29,7 +29,7 @@ export const translations = {
   },
   en: {
     accountInfo: "Account for transfer (phone number or bank account)",
-    amount: "Amount *",
+    amount: "Amount (zł) *",
     amountInWords: "Amount in words",
     basedOn: "Based on",
     church: "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE",
@@ -55,7 +55,7 @@ export const translations = {
   },
   uk: {
     accountInfo: "Рахунок для переказу (номер телефону або банківський рахунок)",
-    amount: "Сума *",
+    amount: "Сума (zł) *",
     amountInWords: "Сума словами",
     basedOn: "На підставі",
     church: "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE",
@@ -81,7 +81,7 @@ export const translations = {
   },
   pl: {
     accountInfo: "Konto do przelewu (numer telefonu lub konto bankowe)",
-    amount: "Kwota *",
+    amount: "Kwota (zł) *",
     amountInWords: "Kwota słownie",
     basedOn: "Na podstawie",
     church: "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE",
