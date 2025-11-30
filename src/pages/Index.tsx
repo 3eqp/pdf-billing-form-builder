@@ -78,13 +78,13 @@ const Index = () => {
           {/* Date and Amount Row */}
           <div className="grid md:grid-cols-2 gap-4">
             <FormField
-              label="Data *"
+              label={t.date}
               value={formData.date}
               onChange={updateField("date")}
               type="date"
             />
             <FormField
-              label="Kwota *"
+              label={t.amount}
               value={formData.amount}
               onChange={updateField("amount")}
             />
@@ -92,28 +92,28 @@ const Index = () => {
 
           {/* Issued To */}
           <FormField
-            label="Wydano (imię nazwisko) *"
+            label={t.issuedTo}
             value={formData.issuedTo}
             onChange={updateField("issuedTo")}
           />
 
           {/* Account Info */}
           <FormField
-            label="Konto dla.pszeliewa (numer telefonu, lub konto bankowe)"
+            label={t.accountInfo}
             value={formData.accountInfo}
             onChange={updateField("accountInfo")}
           />
 
           {/* Department Name */}
           <FormField
-            label="Nazwa działu"
+            label={t.departmentName}
             value={formData.departmentName}
             onChange={updateField("departmentName")}
           />
 
           {/* Based On */}
           <FormField
-            label="Na podstawie"
+            label={t.basedOn}
             value={formData.basedOn}
             onChange={updateField("basedOn")}
             multiline
