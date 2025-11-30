@@ -176,7 +176,7 @@ const Index = () => {
             {t.church}
           </p>
         </div>
-
+      
         {/* Main Form Card */}
         <Card className="p-6 space-y-6 shadow-lg">
           {/* Date and Amount Row */}
@@ -251,13 +251,17 @@ const Index = () => {
             />
           </div>
 
+          <div className="caption">
+            <p>{t.requiredFields}</p>
+          </div>
+
           {/* Receipt Upload */}
           <div className="pt-4 border-t border-border">
             <ReceiptUpload receipts={receipts} onChange={setReceipts} language={language} />
           </div>
 
           {/* Generate Button */}
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-center pt-4">
             <Button
               onClick={handleGeneratePDF}
               disabled={isGenerating}
@@ -272,8 +276,7 @@ const Index = () => {
 
         {/* Info Footer */}
         <div className="text-center text-sm text-muted-foreground">
-          <p>{t.requiredFields}</p>
-          <p className="mt-1">{t.pdfInfo}</p>
+          <p className="mt-1 caption">{t.pdfInfo}</p>
         </div>
       </div>
     </div>
