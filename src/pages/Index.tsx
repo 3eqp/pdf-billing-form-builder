@@ -201,16 +201,15 @@ const Index = () => {
       
         {/* Main Form Card */}
         <Card className="p-6 space-y-6 shadow-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Date*/}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.8fr_0.8fr_1.4fr]">
             <FormField
               label={t.date}
               value={formData.date}
               onChange={updateField("date")}
               type="date"
               error={fieldErrors.date}
+              className="max-w-full"
             />
-            {/* Amount with Currency */}
             <AmountFieldWithCurrency
               label={t.amount}
               value={formData.amount}
@@ -219,13 +218,14 @@ const Index = () => {
               onCurrencyChange={handleCurrencyChange}
               onBlur={handleAmountBlur}
               error={fieldErrors.amount}
+              className="max-w-full"
             />
-            {/* Issued To */}
             <FormField
               label={t.issuedTo}
               value={formData.issuedTo}
               onChange={updateField("issuedTo")}
               error={fieldErrors.issuedTo}
+              className="max-w-full"
             />
           </div>
 

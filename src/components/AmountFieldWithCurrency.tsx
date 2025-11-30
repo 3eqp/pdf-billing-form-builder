@@ -40,7 +40,7 @@ export const AmountFieldWithCurrency = ({
         <Select value={currency} onValueChange={(val) => onCurrencyChange(val as Currency)}>
           <SelectTrigger 
             className={cn(
-              "w-[85px] rounded-r-none border-r-0 bg-card transition-colors flex-shrink-0",
+              "w-[60px] rounded-r-none border-r-0 bg-card transition-colors flex-shrink-0",
               error ? "border-red-500 focus:border-red-500" : "border-border focus:border-primary"
             )}
           >
