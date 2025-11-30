@@ -1,10 +1,12 @@
 import { jsPDF } from "jspdf";
 import { PDFDocument } from "pdf-lib";
 import { RobotoRegular, RobotoBold } from "../fonts/roboto";
+import { Currency, currencies } from "@/types/currency";
 
 export interface FormData {
   date: string;
   amount: string;
+  currency: Currency;
   issuedTo: string;
   accountInfo: string;
   departmentName: string;
@@ -157,14 +159,15 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
   doc.rect(margin + labelWidth, yPos, halfWidth - labelWidth - 2, rowHeight);
   doc.text(formData.date, margin + labelWidth + cellPadding, yPos + rowHeight - cellPadding);
   
-  // Amount cell
+  // Amount cell - show currency code in label and symbol with amount value
+  const currencyInfo = currencies[formData.currency];
   const amountLabelX = margin + halfWidth + 2;
   doc.setFillColor(240, 240, 240);
   doc.rect(amountLabelX, yPos, labelWidth, rowHeight, "F");
   doc.rect(amountLabelX, yPos, labelWidth, rowHeight);
-  doc.text("Kwota", amountLabelX + cellPadding, yPos + rowHeight - cellPadding);
+  doc.text(`Kwota (${currencyInfo.code})`, amountLabelX + cellPadding, yPos + rowHeight - cellPadding);
   doc.rect(amountLabelX + labelWidth, yPos, halfWidth - labelWidth - 2, rowHeight);
-  doc.text(formData.amount, amountLabelX + labelWidth + cellPadding, yPos + rowHeight - cellPadding);
+  doc.text(`${currencyInfo.symbol} ${formData.amount}`, amountLabelX + labelWidth + cellPadding, yPos + rowHeight - cellPadding);
 
   yPos += rowHeight + 4;
 

@@ -5,19 +5,23 @@ import { FormField } from "@/components/FormField";
 import { SignatureCanvasComponent } from "@/components/SignatureCanvas";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { CurrencySelector } from "@/components/CurrencySelector";
 import { generatePDF, FormData } from "@/utils/pdfGenerator";
 import { amountToWords } from "@/utils/amountToWords";
 import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
+import { Currency, currencies } from "@/types/currency";
 
 type FieldErrors = Record<keyof FormData, boolean>;
 
 const Index = () => {
   const [language, setLanguage] = useState<Language>('ru');
+  const [currency, setCurrency] = useState<Currency>('PLN');
   const [formData, setFormData] = useState<FormData>({
     date: "",
     amount: "",
+    currency: "PLN",
     issuedTo: "",
     accountInfo: "",
     departmentName: "",
@@ -31,6 +35,7 @@ const Index = () => {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     date: false,
     amount: false,
+    currency: false,
     issuedTo: false,
     accountInfo: false,
     departmentName: false,
@@ -90,7 +95,7 @@ const Index = () => {
       processedValue = parts[0] + '.' + parts[1].slice(0, 2);
     }
     
-    const words = amountToWords(processedValue, language);
+    const words = amountToWords(processedValue, language, currency);
     setFormData((prev) => ({
       ...prev,
       amount: processedValue,
@@ -101,7 +106,7 @@ const Index = () => {
   const handleAmountBlur = () => {
     if (formData.amount) {
       const formatted = formatAmount(formData.amount);
-      const words = amountToWords(formatted, language);
+      const words = amountToWords(formatted, language, currency);
       setFormData((prev) => ({
         ...prev,
         amount: formatted,
@@ -114,10 +119,28 @@ const Index = () => {
     setLanguage(newLanguage);
     // Update amountInWords when language changes if there's an amount
     if (formData.amount) {
-      const words = amountToWords(formData.amount, newLanguage);
+      const words = amountToWords(formData.amount, newLanguage, currency);
       setFormData((prev) => ({
         ...prev,
         amountInWords: words,
+      }));
+    }
+  };
+
+  const handleCurrencyChange = (newCurrency: Currency) => {
+    setCurrency(newCurrency);
+    // Update amountInWords when currency changes if there's an amount
+    if (formData.amount) {
+      const words = amountToWords(formData.amount, language, newCurrency);
+      setFormData((prev) => ({
+        ...prev,
+        currency: newCurrency,
+        amountInWords: words,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        currency: newCurrency,
       }));
     }
   };
@@ -127,6 +150,7 @@ const Index = () => {
     const errors: FieldErrors = {
       date: !formData.date,
       amount: !formData.amount,
+      currency: !formData.currency,
       issuedTo: !formData.issuedTo,
       accountInfo: !formData.accountInfo,
       departmentName: !formData.departmentName,
@@ -177,7 +201,7 @@ const Index = () => {
       
         {/* Main Form Card */}
         <Card className="p-6 space-y-6 shadow-lg">
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-4 gap-4">
             {/* Date*/}
             <FormField
               label={t.date}
@@ -186,13 +210,20 @@ const Index = () => {
               type="date"
               error={fieldErrors.date}
             />
+            {/* Currency */}
+            <CurrencySelector
+              label={t.currency}
+              value={currency}
+              onChange={handleCurrencyChange}
+            />
             {/* Amount */}
             <FormField
-                label={t.amount}
+                label={`${t.amount.replace(' *', '')} (${currencies[currency].code}) *`}
                 value={formData.amount}
                 onChange={handleAmountChange}
                 error={fieldErrors.amount}
                 onBlur={handleAmountBlur}
+                prefix={currencies[currency].symbol}
               />
               {/* Issued To */}
               <FormField
