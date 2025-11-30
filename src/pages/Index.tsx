@@ -33,8 +33,17 @@ const Index = () => {
   };
 
   const handleGeneratePDF = async () => {
-    // Validation
-    if (!formData.date || !formData.amount || !formData.issuedTo) {
+    // Validation - all fields are mandatory except receipts
+    if (
+      !formData.date ||
+      !formData.amount ||
+      !formData.issuedTo ||
+      !formData.accountInfo ||
+      !formData.departmentName ||
+      !formData.basedOn ||
+      !formData.amountInWords ||
+      !formData.recipientSignature
+    ) {
       toast.error(t.validationError);
       return;
     }
