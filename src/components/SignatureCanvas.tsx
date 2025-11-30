@@ -9,9 +9,10 @@ interface SignatureCanvasComponentProps {
   label: string;
   onChange: (signature: string) => void;
   language?: Language;
+  error?: boolean;
 }
 
-export const SignatureCanvasComponent = ({ label, onChange, language = 'ru' }: SignatureCanvasComponentProps) => {
+export const SignatureCanvasComponent = ({ label, onChange, language = 'ru', error = false }: SignatureCanvasComponentProps) => {
   const sigCanvas = useRef<SignatureCanvas>(null);
   const t = translations[language];
 
@@ -30,7 +31,7 @@ export const SignatureCanvasComponent = ({ label, onChange, language = 'ru' }: S
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium text-foreground">{label}</Label>
+        <Label className={`text-sm font-medium ${error ? "text-red-500" : "text-foreground"}`}>{label}</Label>
         <Button
           type="button"
           variant="outline"
@@ -42,7 +43,7 @@ export const SignatureCanvasComponent = ({ label, onChange, language = 'ru' }: S
           {t.clear}
         </Button>
       </div>
-      <div className="border-2 border-signature-border rounded-md bg-white overflow-hidden">
+      <div className={`border-2 rounded-md bg-white overflow-hidden ${error ? "border-red-500" : "border-signature-border"}`}>
         <SignatureCanvas
           ref={sigCanvas}
           onEnd={handleEnd}
