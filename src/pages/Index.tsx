@@ -201,7 +201,7 @@ const Index = () => {
       
         {/* Main Form Card */}
         <Card className="p-6 space-y-6 shadow-lg">
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Date*/}
             <FormField
               label={t.date}
@@ -218,7 +218,7 @@ const Index = () => {
             />
             {/* Amount */}
             <FormField
-                label={`${t.amount.replace(' *', '')} (${currencies[currency].code}) *`}
+                label={`${t.amountLabel} (${currencies[currency].code}) *`}
                 value={formData.amount}
                 onChange={handleAmountChange}
                 error={fieldErrors.amount}
