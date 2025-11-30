@@ -44,16 +44,18 @@ export const ReceiptUpload = ({ receipts, onChange, language = 'ru' }: ReceiptUp
 
   return (
     <div className="space-y-3">
-      <Label className="text-sm font-medium text-foreground">{t.uploadReceipts}</Label>
-      
+      <div className="flex-1 gap-2">
+        <Label className="text-sm font-medium text-foreground">{t.uploadReceipts}</Label>
+        <Label className="flex caption">{t.uploadReceiptsCaption}</Label>
+      </div>
       <div className="flex gap-2">
         <Button
           type="button"
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
-          className="flex-1"
+          className="flex-1 w-full gap-2 mt-1"
         >
-          <Upload className="h-4 w-4 mr-2" />
+          <Upload className="h-4 w-4" />
           {t.uploadDescription}
         </Button>
         <input
