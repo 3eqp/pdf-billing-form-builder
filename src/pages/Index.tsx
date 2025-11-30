@@ -13,10 +13,19 @@ import { translations, Language } from "@/i18n/translations";
 
 type FieldErrors = Record<keyof FormData, boolean>;
 
+// Helper function to get current date in YYYY-MM-DD format
+const getCurrentDate = (): string => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const Index = () => {
   const [language, setLanguage] = useState<Language>('ru');
   const [formData, setFormData] = useState<FormData>({
-    date: "",
+    date: getCurrentDate(),
     amount: "",
     issuedTo: "",
     accountInfo: "",
@@ -156,14 +165,14 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background py-4 sm:py-8 px-3 sm:px-4">
+      <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex-1 flex justify-center">
-            <FileText className="h-8 w-8 text-document-header" />
+            <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-document-header" />
           </div>
-          <h1 className="text-3xl font-bold text-document-header">
+          <h1 className="text-2xl sm:text-3xl font-bold text-document-header">
             {t.title}
           </h1>
           <p className="caption">
@@ -176,8 +185,8 @@ const Index = () => {
         </div>
       
         {/* Main Form Card */}
-        <Card className="p-6 space-y-6 shadow-lg">
-          <div className="grid md:grid-cols-3 gap-4">
+        <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date*/}
             <FormField
               label={t.date}
@@ -257,12 +266,12 @@ const Index = () => {
           </div>
 
           {/* Generate Button */}
-          <div className="flex justify-center pt-4">
+          <div className="pt-4">
             <Button
               onClick={handleGeneratePDF}
               disabled={isGenerating}
               size="lg"
-              className="gap-2"
+              className="w-full gap-2"
             >
               <FileDown className="h-5 w-5" />
               {isGenerating ? t.generating : t.generatePDF}
