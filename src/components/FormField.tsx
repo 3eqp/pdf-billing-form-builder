@@ -7,6 +7,7 @@ interface FormFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   multiline?: boolean;
   rows?: number;
   className?: string;
@@ -17,6 +18,7 @@ export const FormField = ({
   label, 
   value, 
   onChange, 
+  onBlur,
   multiline = false, 
   rows = 1,
   className,
@@ -29,6 +31,7 @@ export const FormField = ({
         <Textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
           rows={rows}
           className="resize-none bg-card border-border focus:border-primary transition-colors"
         />
@@ -37,6 +40,7 @@ export const FormField = ({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
           className="bg-card border-border focus:border-primary transition-colors"
         />
       )}
