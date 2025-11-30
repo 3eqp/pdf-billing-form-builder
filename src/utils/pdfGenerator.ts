@@ -167,7 +167,7 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
   const amountWordsHeight = drawMultiLineRow(yPos, "Kwota słownie", formData.amountInWords, 50, 2);
   yPos += amountWordsHeight;
 
-  yPos += 10;
+  yPos += 16;
 
   // Kasjer and Podpis kasjera in one row with underlines
   doc.setFontSize(9);
@@ -186,7 +186,7 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
   const podpisKasjeraTextWidth = doc.getTextWidth(podpisKasjeraLabel);
   doc.line(podpisKasjeraX + podpisKasjeraTextWidth + 2, yPos, podpisKasjeraX + podpisKasjeraTextWidth + 2 + underlineLength, yPos);
 
-  yPos += 12;
+  yPos += 16;
 
   // Podpis odbiorcy - full width bold frame
   const recipientBoxHeight = 30;
