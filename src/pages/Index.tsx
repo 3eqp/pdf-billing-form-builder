@@ -186,6 +186,9 @@ const Index = () => {
       
         {/* Main Form Card */}
         <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-lg">
+           <div className="caption">
+            <p>{t.requiredFields}</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Date*/}
             <FormField
@@ -244,6 +247,8 @@ const Index = () => {
             value={formData.amountInWords}
             onChange={updateField("amountInWords")}
             error={fieldErrors.amountInWords}
+            multiline
+            rows={2}
           />
 
           {/* Recipient Signature */}
@@ -256,14 +261,14 @@ const Index = () => {
             />
           </div>
 
-          <div className="caption">
-            <p>{t.requiredFields}</p>
-          </div>
-
           {/* Receipt Upload */}
-          <div className="pt-4 border-t border-border">
-            <ReceiptUpload receipts={receipts} onChange={setReceipts} language={language} />
-          </div>
+            <div className="pt-4 border border-dashed border-border p-4 rounded-md">
+            <ReceiptUpload
+              receipts={receipts}
+              onChange={setReceipts}
+              language={language}
+            />
+            </div>
 
           {/* Generate Button */}
           <div className="pt-4">
@@ -280,8 +285,8 @@ const Index = () => {
         </Card>
 
         {/* Info Footer */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p className="mt-1 caption">{t.pdfInfo}</p>
+        <div className="mt-4 p-3">
+            <p className="text-center caption">{t.pdfInfo}</p>
         </div>
       </div>
     </div>
