@@ -25,7 +25,14 @@ const loadImageAsDataURL = (file: File): Promise<string> => {
 const loadFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target?.result as ArrayBuffer);
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (result instanceof ArrayBuffer) {
+        resolve(result);
+      } else {
+        reject(new Error('Failed to read file as ArrayBuffer'));
+      }
+    };
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
