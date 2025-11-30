@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { PDFDocument } from "pdf-lib";
 import { RobotoRegular, RobotoBold } from "../fonts/roboto";
 
 export interface FormData {
@@ -19,6 +20,26 @@ const loadImageAsDataURL = (file: File): Promise<string> => {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+};
+
+const loadFileAsArrayBuffer = (file: File): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result;
+      if (result instanceof ArrayBuffer) {
+        resolve(result);
+      } else {
+        reject(new Error('Failed to read file as ArrayBuffer'));
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+};
+
+const isPdfFile = (file: File): boolean => {
+  return file.type === "application/pdf";
 };
 
 const fitImageToPage = (
@@ -216,12 +237,15 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
     }
   }
 
-  // Add receipt pages
-  for (let i = 0; i < receipts.length; i++) {
+  // Add image receipt pages (skip PDF files for now - they'll be added via pdf-lib)
+  const imageReceipts = receipts.filter(file => !isPdfFile(file));
+  const pdfReceipts = receipts.filter(file => isPdfFile(file));
+  
+  for (let i = 0; i < imageReceipts.length; i++) {
     doc.addPage();
     
     try {
-      const receiptData = await loadImageAsDataURL(receipts[i]);
+      const receiptData = await loadImageAsDataURL(imageReceipts[i]);
       const maxWidth = contentWidth;
       const maxHeight = pageHeight - 2 * margin;
       
@@ -229,11 +253,81 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
     } catch (error) {
       console.error(`Error adding receipt ${i + 1}:`, error);
       doc.setFontSize(12);
-      doc.text(`Error loading receipt: ${receipts[i].name}`, margin, pageHeight / 2);
+      doc.text(`Error loading receipt: ${imageReceipts[i].name}`, margin, pageHeight / 2);
     }
   }
 
-  // Save the PDF
-  const fileName = `Dowod_wyplaty_${formData.date.replace(/\//g, "-") || "document"}.pdf`;
-  doc.save(fileName);
+  // If there are no PDF receipts, save directly
+  if (pdfReceipts.length === 0) {
+    const fileName = `Dowod_wyplaty_${formData.date.replace(/\//g, "-") || "document"}.pdf`;
+    doc.save(fileName);
+    return;
+  }
+
+  // Merge with PDF receipts using pdf-lib
+  const jspdfOutput = doc.output("arraybuffer");
+  const finalPdf = await PDFDocument.load(jspdfOutput);
+
+  // A4 dimensions in points (1 point = 1/72 inch)
+  const A4_WIDTH = 595.28;
+  const A4_HEIGHT = 841.89;
+  const MM_TO_POINTS = 2.83465;
+  const SIZE_TOLERANCE = 1; // tolerance for size comparison in points
+
+  for (const pdfFile of pdfReceipts) {
+    try {
+      const pdfBytes = await loadFileAsArrayBuffer(pdfFile);
+      const receiptPdf = await PDFDocument.load(pdfBytes);
+      const pageIndices = receiptPdf.getPageIndices();
+      
+      for (const pageIndex of pageIndices) {
+        const [sourcePage] = await finalPdf.copyPages(receiptPdf, [pageIndex]);
+        const { width: srcWidth, height: srcHeight } = sourcePage.getSize();
+        
+        // Check if the page needs to be scaled to fit A4
+        if (Math.abs(srcWidth - A4_WIDTH) > SIZE_TOLERANCE || Math.abs(srcHeight - A4_HEIGHT) > SIZE_TOLERANCE) {
+          // Create a new A4 page
+          const newPage = finalPdf.addPage([A4_WIDTH, A4_HEIGHT]);
+          
+          // Embed the source page as an XObject
+          const embeddedPage = await finalPdf.embedPage(sourcePage);
+          
+          // Calculate scale to fit within A4 with margins (15mm margin)
+          const marginPts = 15 * MM_TO_POINTS;
+          const maxWidth = A4_WIDTH - 2 * marginPts;
+          const maxHeight = A4_HEIGHT - 2 * marginPts;
+          
+          const scale = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+          const scaledWidth = srcWidth * scale;
+          const scaledHeight = srcHeight * scale;
+          
+          // Center the content on the page
+          const x = (A4_WIDTH - scaledWidth) / 2;
+          const y = (A4_HEIGHT - scaledHeight) / 2;
+          
+          newPage.drawPage(embeddedPage, {
+            x,
+            y,
+            width: scaledWidth,
+            height: scaledHeight,
+          });
+        } else {
+          // Page is already A4 size, add it directly
+          finalPdf.addPage(sourcePage);
+        }
+      }
+    } catch (error) {
+      console.error(`Error adding PDF receipt: ${pdfFile.name}`, error);
+    }
+  }
+
+  // Save the merged PDF
+  const finalPdfBytes = await finalPdf.save();
+  const blob = new Blob([finalPdfBytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `Dowod_wyplaty_${formData.date.replace(/\//g, "-") || "document"}.pdf`;
+  link.click();
+  URL.revokeObjectURL(url);
 };
