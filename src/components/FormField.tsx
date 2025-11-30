@@ -13,6 +13,7 @@ interface FormFieldProps {
   className?: string;
   type?: string;
   error?: boolean;
+  prefix?: string;
 }
 
 export const FormField = ({ 
@@ -24,7 +25,8 @@ export const FormField = ({
   rows = 1,
   className,
   type = "text",
-  error = false
+  error = false,
+  prefix
 }: FormFieldProps) => {
   return (
     <div className={cn("space-y-2", className)}>
@@ -40,6 +42,22 @@ export const FormField = ({
             error ? "border-red-500 focus:border-red-500" : "border-border focus:border-primary"
           )}
         />
+      ) : prefix ? (
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            {prefix}
+          </span>
+          <Input
+            type={type}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
+            className={cn(
+              "bg-card transition-colors pl-8",
+              error ? "border-red-500 focus:border-red-500" : "border-border focus:border-primary"
+            )}
+          />
+        </div>
       ) : (
         <Input
           type={type}

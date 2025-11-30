@@ -5,11 +5,13 @@ import { FormField } from "@/components/FormField";
 import { SignatureCanvasComponent } from "@/components/SignatureCanvas";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AmountFieldWithCurrency } from "@/components/AmountFieldWithCurrency";
 import { generatePDF, FormData } from "@/utils/pdfGenerator";
 import { amountToWords } from "@/utils/amountToWords";
 import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
+import { Currency } from "@/types/currency";
 
 type FieldErrors = Record<keyof FormData, boolean>;
 
@@ -24,9 +26,11 @@ const getCurrentDate = (): string => {
 
 const Index = () => {
   const [language, setLanguage] = useState<Language>('ru');
+  const [currency, setCurrency] = useState<Currency>('PLN');
   const [formData, setFormData] = useState<FormData>({
     date: getCurrentDate(),
     amount: "",
+    currency: "PLN",
     issuedTo: "",
     accountInfo: "",
     departmentName: "",
@@ -40,6 +44,7 @@ const Index = () => {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     date: false,
     amount: false,
+    currency: false,
     issuedTo: false,
     accountInfo: false,
     departmentName: false,
@@ -99,7 +104,7 @@ const Index = () => {
       processedValue = parts[0] + '.' + parts[1].slice(0, 2);
     }
     
-    const words = amountToWords(processedValue, language);
+    const words = amountToWords(processedValue, language, currency);
     setFormData((prev) => ({
       ...prev,
       amount: processedValue,
@@ -110,7 +115,7 @@ const Index = () => {
   const handleAmountBlur = () => {
     if (formData.amount) {
       const formatted = formatAmount(formData.amount);
-      const words = amountToWords(formatted, language);
+      const words = amountToWords(formatted, language, currency);
       setFormData((prev) => ({
         ...prev,
         amount: formatted,
@@ -123,10 +128,28 @@ const Index = () => {
     setLanguage(newLanguage);
     // Update amountInWords when language changes if there's an amount
     if (formData.amount) {
-      const words = amountToWords(formData.amount, newLanguage);
+      const words = amountToWords(formData.amount, newLanguage, currency);
       setFormData((prev) => ({
         ...prev,
         amountInWords: words,
+      }));
+    }
+  };
+
+  const handleCurrencyChange = (newCurrency: Currency) => {
+    setCurrency(newCurrency);
+    // Update amountInWords when currency changes if there's an amount
+    if (formData.amount) {
+      const words = amountToWords(formData.amount, language, newCurrency);
+      setFormData((prev) => ({
+        ...prev,
+        currency: newCurrency,
+        amountInWords: words,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        currency: newCurrency,
       }));
     }
   };
@@ -136,6 +159,7 @@ const Index = () => {
     const errors: FieldErrors = {
       date: !formData.date,
       amount: !formData.amount,
+      currency: !formData.currency,
       issuedTo: !formData.issuedTo,
       accountInfo: !formData.accountInfo,
       departmentName: !formData.departmentName,
@@ -185,11 +209,11 @@ const Index = () => {
         </div>
       
         {/* Main Form Card */}
-        <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6 shadow-lg">
-           <div className="caption">
+        <Card className="p-6 space-y-6 shadow-lg">
+          <div className="caption">
             <p>{t.requiredFields}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[0.8fr_0.8fr_1.4fr]">
             {/* Date*/}
             <FormField
               label={t.date}
@@ -197,22 +221,25 @@ const Index = () => {
               onChange={updateField("date")}
               type="date"
               error={fieldErrors.date}
+              className="max-w-full"
             />
-            {/* Amount */}
+            <AmountFieldWithCurrency
+              label={t.amount}
+              value={formData.amount}
+              currency={currency}
+              onChange={handleAmountChange}
+              onCurrencyChange={handleCurrencyChange}
+              onBlur={handleAmountBlur}
+              error={fieldErrors.amount}
+              className="max-w-full"
+            />
             <FormField
-                label={t.amount}
-                value={formData.amount}
-                onChange={handleAmountChange}
-                error={fieldErrors.amount}
-                onBlur={handleAmountBlur}
-              />
-              {/* Issued To */}
-              <FormField
-                label={t.issuedTo}
-                value={formData.issuedTo}
-                onChange={updateField("issuedTo")}
-                error={fieldErrors.issuedTo}
-              />
+              label={t.issuedTo}
+              value={formData.issuedTo}
+              onChange={updateField("issuedTo")}
+              error={fieldErrors.issuedTo}
+              className="max-w-full"
+            />
           </div>
 
           {/* Account Info */}
