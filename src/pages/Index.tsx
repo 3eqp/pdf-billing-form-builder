@@ -33,17 +33,23 @@ const Index = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Format amount to always have 2 decimal places
-  const formatAmount = (value: string): string => {
+  // Sanitize amount input - remove non-numeric chars except decimal
+  const sanitizeAmount = (value: string): string => {
     // Remove all non-numeric characters except decimal point and comma
     let cleaned = value.replace(/[^\d.,]/g, '');
     // Replace comma with dot for consistency
     cleaned = cleaned.replace(',', '.');
-    // Remove multiple decimal points, keep only the first
+    // Remove multiple decimal points, keep only the first decimal part
     const parts = cleaned.split('.');
     if (parts.length > 2) {
-      cleaned = parts[0] + '.' + parts.slice(1).join('');
+      cleaned = parts[0] + '.' + parts[1];
     }
+    return cleaned;
+  };
+
+  // Format amount to always have 2 decimal places
+  const formatAmount = (value: string): string => {
+    const cleaned = sanitizeAmount(value);
     
     if (!cleaned || cleaned === '.') {
       return '';
@@ -59,8 +65,7 @@ const Index = () => {
 
   const handleAmountChange = (value: string) => {
     // Allow typing with partial input (don't format while typing)
-    // Only allow digits, decimal point and comma
-    const sanitized = value.replace(/[^\d.,]/g, '').replace(',', '.');
+    const sanitized = sanitizeAmount(value);
     
     // Prevent more than 2 decimal places while typing
     const parts = sanitized.split('.');
