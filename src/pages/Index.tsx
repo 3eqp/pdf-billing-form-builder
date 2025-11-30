@@ -6,6 +6,7 @@ import { SignatureCanvasComponent } from "@/components/SignatureCanvas";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { generatePDF, FormData } from "@/utils/pdfGenerator";
+import { amountToWords } from "@/utils/amountToWords";
 import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
@@ -45,6 +46,79 @@ const Index = () => {
     // Clear error when user starts typing
     if (fieldErrors[field]) {
       setFieldErrors((prev) => ({ ...prev, [field]: false }));
+    }
+  };
+
+  // Sanitize amount input - remove non-numeric chars except decimal
+  const sanitizeAmount = (value: string): string => {
+    // Remove all non-numeric characters except decimal point and comma
+    let cleaned = value.replace(/[^\d.,]/g, '');
+    // Replace comma with dot for consistency
+    cleaned = cleaned.replace(',', '.');
+    // Remove multiple decimal points, keep only the first decimal part
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      cleaned = parts[0] + '.' + parts[1];
+    }
+    return cleaned;
+  };
+
+  // Format amount to always have 2 decimal places
+  const formatAmount = (value: string): string => {
+    const cleaned = sanitizeAmount(value);
+    
+    if (!cleaned || cleaned === '.') {
+      return '';
+    }
+
+    const parsed = parseFloat(cleaned);
+    if (isNaN(parsed)) {
+      return '';
+    }
+
+    return parsed.toFixed(2);
+  };
+
+  const handleAmountChange = (value: string) => {
+    // Allow typing with partial input (don't format while typing)
+    const sanitized = sanitizeAmount(value);
+    
+    // Prevent more than 2 decimal places while typing
+    const parts = sanitized.split('.');
+    let processedValue = sanitized;
+    if (parts.length > 1 && parts[1].length > 2) {
+      processedValue = parts[0] + '.' + parts[1].slice(0, 2);
+    }
+    
+    const words = amountToWords(processedValue, language);
+    setFormData((prev) => ({
+      ...prev,
+      amount: processedValue,
+      amountInWords: words,
+    }));
+  };
+
+  const handleAmountBlur = () => {
+    if (formData.amount) {
+      const formatted = formatAmount(formData.amount);
+      const words = amountToWords(formatted, language);
+      setFormData((prev) => ({
+        ...prev,
+        amount: formatted,
+        amountInWords: words,
+      }));
+    }
+  };
+
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    // Update amountInWords when language changes if there's an amount
+    if (formData.amount) {
+      const words = amountToWords(formData.amount, newLanguage);
+      setFormData((prev) => ({
+        ...prev,
+        amountInWords: words,
+      }));
     }
   };
 
@@ -92,7 +166,7 @@ const Index = () => {
               <FileText className="h-8 w-8 text-document-header" />
             </div>
             <div className="flex-1 flex justify-end">
-              <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
+              <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-document-header">
@@ -117,8 +191,9 @@ const Index = () => {
             <FormField
               label={t.amount}
               value={formData.amount}
-              onChange={updateField("amount")}
+              onChange={handleAmountChange}
               error={fieldErrors.amount}
+              onBlur={handleAmountBlur}
             />
           </div>
 
