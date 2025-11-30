@@ -1,2 +1,5 @@
 node_modules
 dist
+src/.DS_Store
+src/utils/.DS_Store
+src/.DS_Store
