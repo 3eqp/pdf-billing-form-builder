@@ -219,13 +219,54 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
   const jspdfOutput = doc.output("arraybuffer");
   const finalPdf = await PDFDocument.load(jspdfOutput);
 
+  // A4 dimensions in points (1 point = 1/72 inch)
+  const A4_WIDTH = 595.28;
+  const A4_HEIGHT = 841.89;
+  const MM_TO_POINTS = 2.83465;
+  const SIZE_TOLERANCE = 1; // tolerance for size comparison in points
+
   for (const pdfFile of pdfReceipts) {
     try {
       const pdfBytes = await loadFileAsArrayBuffer(pdfFile);
       const receiptPdf = await PDFDocument.load(pdfBytes);
       const pageIndices = receiptPdf.getPageIndices();
-      const copiedPages = await finalPdf.copyPages(receiptPdf, pageIndices);
-      copiedPages.forEach((page) => finalPdf.addPage(page));
+      
+      for (const pageIndex of pageIndices) {
+        const [sourcePage] = await finalPdf.copyPages(receiptPdf, [pageIndex]);
+        const { width: srcWidth, height: srcHeight } = sourcePage.getSize();
+        
+        // Check if the page needs to be scaled to fit A4
+        if (Math.abs(srcWidth - A4_WIDTH) > SIZE_TOLERANCE || Math.abs(srcHeight - A4_HEIGHT) > SIZE_TOLERANCE) {
+          // Create a new A4 page
+          const newPage = finalPdf.addPage([A4_WIDTH, A4_HEIGHT]);
+          
+          // Embed the source page as an XObject
+          const embeddedPage = await finalPdf.embedPage(sourcePage);
+          
+          // Calculate scale to fit within A4 with margins (15mm margin)
+          const marginPts = 15 * MM_TO_POINTS;
+          const maxWidth = A4_WIDTH - 2 * marginPts;
+          const maxHeight = A4_HEIGHT - 2 * marginPts;
+          
+          const scale = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+          const scaledWidth = srcWidth * scale;
+          const scaledHeight = srcHeight * scale;
+          
+          // Center the content on the page
+          const x = (A4_WIDTH - scaledWidth) / 2;
+          const y = (A4_HEIGHT - scaledHeight) / 2;
+          
+          newPage.drawPage(embeddedPage, {
+            x,
+            y,
+            width: scaledWidth,
+            height: scaledHeight,
+          });
+        } else {
+          // Page is already A4 size, add it directly
+          finalPdf.addPage(sourcePage);
+        }
+      }
     } catch (error) {
       console.error(`Error adding PDF receipt: ${pdfFile.name}`, error);
     }
