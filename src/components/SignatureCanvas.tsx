@@ -39,7 +39,7 @@ export const SignatureCanvasComponent = ({ label, onChange, language = 'ru', err
           onClick={clear}
           className="h-8 px-2"
         >
-          <Eraser className="h-4 w-4 mr-1" />
+          <Eraser className="h-4 w-4" />
           {t.clear}
         </Button>
       </div>

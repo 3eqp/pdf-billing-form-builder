@@ -98,6 +98,14 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 .caption {
@@ -107,12 +115,13 @@ All colors MUST be HSL.
   color: hsl(var(--muted-foreground));
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+/* Date input calendar icon alignment - move to right edge */
+input[type="date"] {
+  position: relative;
+}
 
-  body {
-    @apply bg-background text-foreground;
-  }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.75rem;
+  cursor: pointer;
 }
