@@ -62,106 +62,139 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
 
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 15;
+  const margin = 20;
   const contentWidth = pageWidth - 2 * margin;
+  const rowHeight = 8;
+  const cellPadding = 2;
 
-  // Page 1: Form
-  // Header
-  doc.setFontSize(11);
+  // Helper function to draw a table row with label and value
+  const drawTableRow = (y: number, label: string, value: string, labelWidth: number = 50) => {
+    const valueWidth = contentWidth - labelWidth;
+    // Label cell (gray background)
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, y, labelWidth, rowHeight, "F");
+    doc.rect(margin, y, labelWidth, rowHeight);
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(9);
+    doc.text(label, margin + cellPadding, y + rowHeight - cellPadding);
+    // Value cell
+    doc.rect(margin + labelWidth, y, valueWidth, rowHeight);
+    doc.text(value, margin + labelWidth + cellPadding, y + rowHeight - cellPadding);
+  };
+
+  // Helper function to draw a multi-line table row
+  const drawMultiLineRow = (y: number, label: string, value: string, labelWidth: number = 50, numLines: number = 3) => {
+    const valueWidth = contentWidth - labelWidth;
+    const totalHeight = rowHeight * numLines;
+    // Label cell (gray background)
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, y, labelWidth, totalHeight, "F");
+    doc.rect(margin, y, labelWidth, totalHeight);
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(9);
+    doc.text(label, margin + cellPadding, y + rowHeight - cellPadding);
+    // Value cell
+    doc.rect(margin + labelWidth, y, valueWidth, totalHeight);
+    const lines = doc.splitTextToSize(value, valueWidth - 2 * cellPadding);
+    for (let i = 0; i < Math.min(lines.length, numLines); i++) {
+      doc.text(lines[i], margin + labelWidth + cellPadding, y + rowHeight * (i + 1) - cellPadding);
+    }
+    return totalHeight;
+  };
+
+  let yPos = margin;
+
+  // Organization Header
+  doc.setFontSize(10);
   doc.setFont("Roboto", "normal");
   const headerText = "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE";
   const headerWidth = doc.getTextWidth(headerText);
-  doc.text(headerText, (pageWidth - headerWidth) / 2, 20);
+  doc.text(headerText, (pageWidth - headerWidth) / 2, yPos);
+
+  yPos += 12;
 
   // Title
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont("Roboto", "bold");
   const titleText = "Dowód wypłaty";
   const titleWidth = doc.getTextWidth(titleText);
-  doc.text(titleText, (pageWidth - titleWidth) / 2, 32);
+  doc.text(titleText, (pageWidth - titleWidth) / 2, yPos);
 
-  doc.setFontSize(10);
+  yPos += 10;
+
+  // Date and Amount row (two columns)
+  doc.setFontSize(9);
   doc.setFont("Roboto", "normal");
+  const halfWidth = contentWidth / 2;
+  const labelWidth = 25;
+  
+  // Date cell
+  doc.setFillColor(240, 240, 240);
+  doc.rect(margin, yPos, labelWidth, rowHeight, "F");
+  doc.rect(margin, yPos, labelWidth, rowHeight);
+  doc.text("Data", margin + cellPadding, yPos + rowHeight - cellPadding);
+  doc.rect(margin + labelWidth, yPos, halfWidth - labelWidth - 2, rowHeight);
+  doc.text(formData.date, margin + labelWidth + cellPadding, yPos + rowHeight - cellPadding);
+  
+  // Amount cell
+  const amountLabelX = margin + halfWidth + 2;
+  doc.setFillColor(240, 240, 240);
+  doc.rect(amountLabelX, yPos, labelWidth, rowHeight, "F");
+  doc.rect(amountLabelX, yPos, labelWidth, rowHeight);
+  doc.text("Kwota", amountLabelX + cellPadding, yPos + rowHeight - cellPadding);
+  doc.rect(amountLabelX + labelWidth, yPos, halfWidth - labelWidth - 2, rowHeight);
+  doc.text(formData.amount, amountLabelX + labelWidth + cellPadding, yPos + rowHeight - cellPadding);
 
-  let yPos = 45;
+  yPos += rowHeight + 4;
 
-  // Date and Amount row
-  doc.text("Data:", margin, yPos);
-  doc.rect(margin + 12, yPos - 4, 70, 7);
-  doc.text(formData.date, margin + 14, yPos);
+  // Issued to (imię nazwisko)
+  drawTableRow(yPos, "Wydano (imię nazwisko)", formData.issuedTo);
+  yPos += rowHeight;
 
-  doc.text("Kwota:", margin + 90, yPos);
-  doc.rect(margin + 105, yPos - 4, 70, 7);
-  doc.text(formData.amount, margin + 107, yPos);
-
-  yPos += 12;
-
-  // Issued to
-  doc.text("Wydano (imię nazwisko):", margin, yPos);
-  doc.line(margin + 45, yPos + 1, pageWidth - margin, yPos + 1);
-  doc.text(formData.issuedTo, margin + 46, yPos);
-
-  yPos += 10;
-
-  // Account info
-  doc.text("Konto dla.pszeliewa (numer telefonu, lub konto bankowe):", margin, yPos);
-  doc.line(margin + 95, yPos + 1, pageWidth - margin, yPos + 1);
-  doc.text(formData.accountInfo, margin + 96, yPos);
-
-  yPos += 10;
+  // Account info (konto dla przelewu)
+  drawTableRow(yPos, "Konto dla przelewu", formData.accountInfo);
+  yPos += rowHeight;
 
   // Department name
-  doc.text("Nazwa działu:", margin, yPos);
-  doc.line(margin + 25, yPos + 1, pageWidth - margin, yPos + 1);
-  doc.text(formData.departmentName, margin + 26, yPos);
+  drawTableRow(yPos, "Nazwa działu", formData.departmentName);
+  yPos += rowHeight;
 
-  yPos += 12;
+  // Based on (multi-line)
+  const basedOnHeight = drawMultiLineRow(yPos, "Na podstawie", formData.basedOn, 50, 3);
+  yPos += basedOnHeight;
 
-  // Based on
-  doc.text("Na podstawie", margin, yPos);
-  const basedOnLines = doc.splitTextToSize(formData.basedOn, contentWidth - 5);
-  doc.line(margin + 25, yPos + 1, pageWidth - margin, yPos + 1);
-  doc.text(basedOnLines[0] || "", margin + 26, yPos);
-  
-  yPos += 8;
-  for (let i = 1; i < Math.min(basedOnLines.length, 3); i++) {
-    doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
-    doc.text(basedOnLines[i], margin + 2, yPos);
-    yPos += 8;
-  }
+  // Amount in words (multi-line)
+  const amountWordsHeight = drawMultiLineRow(yPos, "Kwota słownie", formData.amountInWords, 50, 2);
+  yPos += amountWordsHeight;
 
-  yPos += 4;
+  yPos += 10;
 
-  // Amount in words
-  doc.text("Kwota słownie:", margin, yPos);
-  const amountLines = doc.splitTextToSize(formData.amountInWords, contentWidth - 5);
-  doc.line(margin + 30, yPos + 1, pageWidth - margin, yPos + 1);
-  doc.text(amountLines[0] || "", margin + 31, yPos);
-  
-  yPos += 8;
-  for (let i = 1; i < Math.min(amountLines.length, 3); i++) {
-    doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
-    doc.text(amountLines[i], margin + 2, yPos);
-    yPos += 8;
-  }
-
-  yPos += 12;
-
-  // Cashier and recipient signature boxes
+  // Signature boxes
   const signatureBoxWidth = 70;
-  const signatureBoxHeight = 20;
+  const signatureBoxHeight = 25;
+  const signatureLabelHeight = 6;
   
-  // Podpis kasjera (left side - empty box)
-  doc.text("Podpis kasjera:", margin, yPos);
-  doc.rect(margin, yPos + 2, signatureBoxWidth, signatureBoxHeight);
+  // Podpis kasjera (left side)
+  doc.setFontSize(9);
+  doc.setFont("Roboto", "normal");
+  doc.text("Podpis kasjera", margin, yPos);
+  doc.rect(margin, yPos + signatureLabelHeight, signatureBoxWidth, signatureBoxHeight);
 
-  // Podpis odbiorcy (right side - with signature if provided)
-  doc.text("Podpis odbiorcy:", margin + 90, yPos);
-  doc.rect(margin + 90, yPos + 2, signatureBoxWidth, signatureBoxHeight);
+  // Podpis odbiorcy (right side)
+  const rightSignatureX = pageWidth - margin - signatureBoxWidth;
+  doc.text("Podpis odbiorcy", rightSignatureX, yPos);
+  doc.rect(rightSignatureX, yPos + signatureLabelHeight, signatureBoxWidth, signatureBoxHeight);
   
   if (formData.recipientSignature) {
     try {
-      doc.addImage(formData.recipientSignature, "PNG", margin + 92, yPos + 4, signatureBoxWidth - 4, signatureBoxHeight - 4);
+      doc.addImage(
+        formData.recipientSignature, 
+        "PNG", 
+        rightSignatureX + 2, 
+        yPos + signatureLabelHeight + 2, 
+        signatureBoxWidth - 4, 
+        signatureBoxHeight - 4
+      );
     } catch (e) {
       console.error("Error adding recipient signature:", e);
     }
