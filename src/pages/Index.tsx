@@ -6,6 +6,7 @@ import { SignatureCanvasComponent } from "@/components/SignatureCanvas";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { generatePDF, FormData } from "@/utils/pdfGenerator";
+import { amountToWords } from "@/utils/amountToWords";
 import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
@@ -30,6 +31,27 @@ const Index = () => {
 
   const updateField = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAmountChange = (value: string) => {
+    const words = amountToWords(value, language);
+    setFormData((prev) => ({
+      ...prev,
+      amount: value,
+      amountInWords: words,
+    }));
+  };
+
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    // Update amountInWords when language changes if there's an amount
+    if (formData.amount) {
+      const words = amountToWords(formData.amount, newLanguage);
+      setFormData((prev) => ({
+        ...prev,
+        amountInWords: words,
+      }));
+    }
   };
 
   const handleGeneratePDF = async () => {
@@ -62,7 +84,7 @@ const Index = () => {
               <FileText className="h-8 w-8 text-document-header" />
             </div>
             <div className="flex-1 flex justify-end">
-              <LanguageSwitcher currentLanguage={language} onLanguageChange={setLanguage} />
+              <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-document-header">
@@ -86,7 +108,7 @@ const Index = () => {
             <FormField
               label={t.amount}
               value={formData.amount}
-              onChange={updateField("amount")}
+              onChange={handleAmountChange}
             />
           </div>
 
