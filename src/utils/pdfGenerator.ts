@@ -169,31 +169,47 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
 
   yPos += 10;
 
-  // Signature boxes
-  const signatureBoxWidth = 70;
-  const signatureBoxHeight = 25;
-  const signatureLabelHeight = 6;
-  
-  // Podpis kasjera (left side)
+  // Kasjer and Podpis kasjera in one row with underlines
   doc.setFontSize(9);
   doc.setFont("Roboto", "normal");
-  doc.text("Podpis kasjera", margin, yPos);
-  doc.rect(margin, yPos + signatureLabelHeight, signatureBoxWidth, signatureBoxHeight);
+  const underlineLength = 55;
+  
+  // Kasjer:______ on the left
+  doc.text("Kasjer:", margin, yPos);
+  const kasjerTextWidth = doc.getTextWidth("Kasjer:");
+  doc.line(margin + kasjerTextWidth + 2, yPos, margin + kasjerTextWidth + 2 + underlineLength, yPos);
+  
+  // Podpis kasjera:______ on the right
+  const podpisKasjeraLabel = "Podpis kasjera:";
+  const podpisKasjeraX = margin + contentWidth / 2 + 5;
+  doc.text(podpisKasjeraLabel, podpisKasjeraX, yPos);
+  const podpisKasjeraTextWidth = doc.getTextWidth(podpisKasjeraLabel);
+  doc.line(podpisKasjeraX + podpisKasjeraTextWidth + 2, yPos, podpisKasjeraX + podpisKasjeraTextWidth + 2 + underlineLength, yPos);
 
-  // Podpis odbiorcy (right side)
-  const rightSignatureX = pageWidth - margin - signatureBoxWidth;
-  doc.text("Podpis odbiorcy", rightSignatureX, yPos);
-  doc.rect(rightSignatureX, yPos + signatureLabelHeight, signatureBoxWidth, signatureBoxHeight);
+  yPos += 12;
+
+  // Podpis odbiorcy - full width bold frame
+  const recipientBoxHeight = 30;
+  doc.setFont("Roboto", "bold");
+  doc.text("Podpis odbiorcy", margin, yPos);
+  doc.setFont("Roboto", "normal");
+  
+  yPos += 4;
+  
+  // Draw bold frame (thicker line)
+  doc.setLineWidth(0.5);
+  doc.rect(margin, yPos, contentWidth, recipientBoxHeight);
+  doc.setLineWidth(0.2); // Reset to default
   
   if (formData.recipientSignature) {
     try {
       doc.addImage(
         formData.recipientSignature, 
         "PNG", 
-        rightSignatureX + 2, 
-        yPos + signatureLabelHeight + 2, 
-        signatureBoxWidth - 4, 
-        signatureBoxHeight - 4
+        margin + 2, 
+        yPos + 2, 
+        contentWidth - 4, 
+        recipientBoxHeight - 4
       );
     } catch (e) {
       console.error("Error adding recipient signature:", e);
