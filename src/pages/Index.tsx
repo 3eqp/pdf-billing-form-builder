@@ -160,27 +160,25 @@ const Index = () => {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex-1"></div>
-            <div className="flex items-center gap-2">
-              <FileText className="h-8 w-8 text-document-header" />
-            </div>
-            <div className="flex-1 flex justify-end">
-              <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
-            </div>
+          <div className="flex-1 flex justify-center">
+            <FileText className="h-8 w-8 text-document-header" />
           </div>
           <h1 className="text-3xl font-bold text-document-header">
             {t.title}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="caption">
             {t.church}
           </p>
+          <div className="h-1 my-4" />
+          <div className="flex-1 flex justify-center">
+              <LanguageSwitcher currentLanguage={language} onLanguageChange={handleLanguageChange} />
+          </div>
         </div>
       
         {/* Main Form Card */}
         <Card className="p-6 space-y-6 shadow-lg">
-          {/* Date and Amount Row */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Date*/}
             <FormField
               label={t.date}
               value={formData.date}
@@ -188,22 +186,22 @@ const Index = () => {
               type="date"
               error={fieldErrors.date}
             />
+            {/* Amount */}
             <FormField
-              label={t.amount}
-              value={formData.amount}
-              onChange={handleAmountChange}
-              error={fieldErrors.amount}
-              onBlur={handleAmountBlur}
-            />
+                label={t.amount}
+                value={formData.amount}
+                onChange={handleAmountChange}
+                error={fieldErrors.amount}
+                onBlur={handleAmountBlur}
+              />
+              {/* Issued To */}
+              <FormField
+                label={t.issuedTo}
+                value={formData.issuedTo}
+                onChange={updateField("issuedTo")}
+                error={fieldErrors.issuedTo}
+              />
           </div>
-
-          {/* Issued To */}
-          <FormField
-            label={t.issuedTo}
-            value={formData.issuedTo}
-            onChange={updateField("issuedTo")}
-            error={fieldErrors.issuedTo}
-          />
 
           {/* Account Info */}
           <FormField
@@ -227,7 +225,7 @@ const Index = () => {
             value={formData.basedOn}
             onChange={updateField("basedOn")}
             multiline
-            rows={3}
+            rows={2}
             error={fieldErrors.basedOn}
           />
 
@@ -236,8 +234,6 @@ const Index = () => {
             label={t.amountInWords}
             value={formData.amountInWords}
             onChange={updateField("amountInWords")}
-            multiline
-            rows={3}
             error={fieldErrors.amountInWords}
           />
 

@@ -5,7 +5,7 @@ export const translations = {
     accountInfo: "Счет для перевода (номер телефона или банковский счет) *",
     amount: "Сумма (zł) *",
     amountInWords: "Сумма прописью *",
-    basedOn: "На основании (для каких потребностей) *",
+    basedOn: "Основание (для каких потребностей) *",
     church: "ZBÓR CHRZEŚCIJAN BAPTYSTÓW «BOŻA ŁASKA» W WARSZAWIE",
     clear: "Очистить",
     date: "Дата *",
