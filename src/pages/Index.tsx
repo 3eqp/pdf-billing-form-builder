@@ -11,6 +11,8 @@ import { FileDown, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
 
+type FieldErrors = Record<keyof FormData, boolean>;
+
 const Index = () => {
   const [language, setLanguage] = useState<Language>('ru');
   const [formData, setFormData] = useState<FormData>({
@@ -26,11 +28,25 @@ const Index = () => {
 
   const [receipts, setReceipts] = useState<File[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
+    date: false,
+    amount: false,
+    issuedTo: false,
+    accountInfo: false,
+    departmentName: false,
+    basedOn: false,
+    amountInWords: false,
+    recipientSignature: false,
+  });
   
   const t = translations[language];
 
   const updateField = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => ({ ...prev, [field]: false }));
+    }
   };
 
   // Sanitize amount input - remove non-numeric chars except decimal
@@ -107,8 +123,22 @@ const Index = () => {
   };
 
   const handleGeneratePDF = async () => {
-    // Validation
-    if (!formData.date || !formData.amount || !formData.issuedTo) {
+    // Validation - all fields are mandatory except receipts
+    const errors: FieldErrors = {
+      date: !formData.date,
+      amount: !formData.amount,
+      issuedTo: !formData.issuedTo,
+      accountInfo: !formData.accountInfo,
+      departmentName: !formData.departmentName,
+      basedOn: !formData.basedOn,
+      amountInWords: !formData.amountInWords,
+      recipientSignature: !formData.recipientSignature,
+    };
+
+    const hasErrors = Object.values(errors).some((error) => error);
+
+    if (hasErrors) {
+      setFieldErrors(errors);
       toast.error(t.validationError);
       return;
     }
@@ -156,11 +186,13 @@ const Index = () => {
               value={formData.date}
               onChange={updateField("date")}
               type="date"
+              error={fieldErrors.date}
             />
             <FormField
               label={t.amount}
               value={formData.amount}
               onChange={handleAmountChange}
+              error={fieldErrors.amount}
               onBlur={handleAmountBlur}
             />
           </div>
@@ -170,6 +202,7 @@ const Index = () => {
             label={t.issuedTo}
             value={formData.issuedTo}
             onChange={updateField("issuedTo")}
+            error={fieldErrors.issuedTo}
           />
 
           {/* Account Info */}
@@ -177,6 +210,7 @@ const Index = () => {
             label={t.accountInfo}
             value={formData.accountInfo}
             onChange={updateField("accountInfo")}
+            error={fieldErrors.accountInfo}
           />
 
           {/* Department Name */}
@@ -184,6 +218,7 @@ const Index = () => {
             label={t.departmentName}
             value={formData.departmentName}
             onChange={updateField("departmentName")}
+            error={fieldErrors.departmentName}
           />
 
           {/* Based On */}
@@ -193,6 +228,7 @@ const Index = () => {
             onChange={updateField("basedOn")}
             multiline
             rows={3}
+            error={fieldErrors.basedOn}
           />
 
           {/* Amount in Words */}
@@ -202,6 +238,7 @@ const Index = () => {
             onChange={updateField("amountInWords")}
             multiline
             rows={3}
+            error={fieldErrors.amountInWords}
           />
 
           {/* Recipient Signature */}
@@ -210,6 +247,7 @@ const Index = () => {
               label={t.recipientSignature}
               onChange={updateField("recipientSignature")}
               language={language}
+              error={fieldErrors.recipientSignature}
             />
           </div>
 
