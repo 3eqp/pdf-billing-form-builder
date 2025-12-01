@@ -6,9 +6,9 @@ import { SignatureCanvasComponent } from "@/components/SignatureCanvas";
 import { ReceiptUpload } from "@/components/ReceiptUpload";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AmountFieldWithCurrency } from "@/components/AmountFieldWithCurrency";
-import { generatePDF, FormData } from "@/utils/pdfGenerator";
+import { generatePDF, generatePDFFile, FormData } from "@/utils/pdfGenerator";
 import { amountToWords } from "@/utils/amountToWords";
-import { FileDown, FileText } from "lucide-react";
+import { FileDown, FileText, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { translations, Language } from "@/i18n/translations";
 import { Currency } from "@/types/currency";
@@ -41,6 +41,7 @@ const Index = () => {
 
   const [receipts, setReceipts] = useState<File[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     date: false,
     amount: false,
@@ -110,6 +111,11 @@ const Index = () => {
       amount: processedValue,
       amountInWords: words,
     }));
+    
+    // Clear errors for amount and amountInWords when user types
+    if (fieldErrors.amount || fieldErrors.amountInWords) {
+      setFieldErrors((prev) => ({ ...prev, amount: false, amountInWords: false }));
+    }
   };
 
   const handleAmountBlur = () => {
@@ -146,6 +152,10 @@ const Index = () => {
         currency: newCurrency,
         amountInWords: words,
       }));
+      // Clear error for amountInWords when currency changes and there's an amount
+      if (fieldErrors.amountInWords) {
+        setFieldErrors((prev) => ({ ...prev, amountInWords: false }));
+      }
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -154,8 +164,7 @@ const Index = () => {
     }
   };
 
-  const handleGeneratePDF = async () => {
-    // Validation - all fields are mandatory except receipts
+  const validateForm = (): boolean => {
     const errors: FieldErrors = {
       date: !formData.date,
       amount: !formData.amount,
@@ -173,8 +182,13 @@ const Index = () => {
     if (hasErrors) {
       setFieldErrors(errors);
       toast.error(t.validationError);
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!validateForm()) return;
 
     setIsGenerating(true);
     try {
@@ -185,6 +199,42 @@ const Index = () => {
       toast.error(t.errorMessage);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSharePDF = async () => {
+    if (!validateForm()) return;
+
+    // Check if Web Share API is available and supports file sharing
+    if (!navigator.share || !('canShare' in navigator)) {
+      toast.error(t.shareNotSupported);
+      return;
+    }
+
+    setIsSharing(true);
+    try {
+      const pdfFile = await generatePDFFile(formData, receipts);
+      
+      // Check if we can share this file type
+      if (!navigator.canShare({ files: [pdfFile] })) {
+        toast.error(t.shareNotSupported);
+        return;
+      }
+
+      await navigator.share({
+        files: [pdfFile],
+        title: pdfFile.name,
+      });
+      toast.success(t.successMessage);
+    } catch (error) {
+      // User cancelled sharing - don't show error
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+      console.error("Error sharing PDF:", error);
+      toast.error(t.errorMessage);
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -298,15 +348,26 @@ const Index = () => {
             </div>
 
           {/* Generate Button */}
-          <div className="pt-4">
+          <div className="pt-4 space-y-2">
             <Button
               onClick={handleGeneratePDF}
-              disabled={isGenerating}
+              disabled={isGenerating || isSharing}
               size="lg"
               className="w-full gap-2"
             >
               <FileDown className="h-5 w-5" />
               {isGenerating ? t.generating : t.generatePDF}
+            </Button>
+            {/* Share button - mobile only */}
+            <Button
+              onClick={handleSharePDF}
+              disabled={isGenerating || isSharing}
+              size="lg"
+              variant="outline"
+              className="w-full gap-2 sm:hidden"
+            >
+              <Share2 className="h-5 w-5" />
+              {isSharing ? t.sharing : t.sharePDF}
             </Button>
           </div>
         </Card>

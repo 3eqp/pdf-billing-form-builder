@@ -70,7 +70,8 @@ const fitImageToPage = (
   });
 };
 
-export const generatePDF = async (formData: FormData, receipts: File[]): Promise<void> => {
+// Helper function to create the PDF document and return it
+const createPDFDocument = async (formData: FormData, receipts: File[]): Promise<{ blob: Blob; fileName: string }> => {
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -260,11 +261,11 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
     }
   }
 
-  // If there are no PDF receipts, save directly
+  // If there are no PDF receipts, return directly
+  const fileName = `Dowod_wyplaty_${formData.date.replace(/\//g, "-") || "document"}.pdf`;
   if (pdfReceipts.length === 0) {
-    const fileName = `Dowod_wyplaty_${formData.date.replace(/\//g, "-") || "document"}.pdf`;
-    doc.save(fileName);
-    return;
+    const blob = doc.output("blob");
+    return { blob, fileName };
   }
 
   // Merge with PDF receipts using pdf-lib
@@ -333,10 +334,20 @@ export const generatePDF = async (formData: FormData, receipts: File[]): Promise
     finalPdfBytes.byteOffset + finalPdfBytes.byteLength
   ) as ArrayBuffer;
   const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+  return { blob, fileName };
+};
+
+export const generatePDF = async (formData: FormData, receipts: File[]): Promise<void> => {
+  const { blob, fileName } = await createPDFDocument(formData, receipts);
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `Dowod_wyplaty_${formData.date.replace(/\//g, "-") || "document"}.pdf`;
+  link.download = fileName;
   link.click();
   URL.revokeObjectURL(url);
+};
+
+export const generatePDFFile = async (formData: FormData, receipts: File[]): Promise<File> => {
+  const { blob, fileName } = await createPDFDocument(formData, receipts);
+  return new File([blob], fileName, { type: "application/pdf" });
 };
