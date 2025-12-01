@@ -111,6 +111,11 @@ const Index = () => {
       amount: processedValue,
       amountInWords: words,
     }));
+    
+    // Clear errors for amount and amountInWords when user types
+    if (fieldErrors.amount || fieldErrors.amountInWords) {
+      setFieldErrors((prev) => ({ ...prev, amount: false, amountInWords: false }));
+    }
   };
 
   const handleAmountBlur = () => {
@@ -147,6 +152,10 @@ const Index = () => {
         currency: newCurrency,
         amountInWords: words,
       }));
+      // Clear error for amountInWords when currency changes and there's an amount
+      if (fieldErrors.amountInWords) {
+        setFieldErrors((prev) => ({ ...prev, amountInWords: false }));
+      }
     } else {
       setFormData((prev) => ({
         ...prev,
